@@ -1,3 +1,4 @@
+import json
 import re
 
 from datetime import datetime
@@ -17,7 +18,7 @@ def make_outfilename(prompt):
     title = '-'.join(CHAR_PAT.sub('', prompt).lower().split())
     now = datetime.now().isoformat(sep='-', timespec='milliseconds')
     stamp = TIMESTAMP_PAT.sub('-', now)
-    return '_'.join((title, stamp)) + '.png'
+    return '_'.join((title, stamp))
 
 if __name__ == '__main__':
 
@@ -34,6 +35,13 @@ if __name__ == '__main__':
     parser.add_argument('--outdir', '-o', type=str, default='output')
     args = parser.parse_args()
 
+    metadata = { 'creation_date' : datetime.now().isoformat(timespec='milliseconds'), 
+                 'prompt' : args.prompt,
+                 'seed' : args.seed,
+                 'guidance_scale' : args.guidance_scale,
+                 'num_inference_steps' : args.num_inference_steps
+               }
+
     pipe = StableDiffusionPipeline.from_pretrained(MODEL_ID, 
                                                    use_auth_token=True)
     pipe = pipe.to(DEVICE)
@@ -47,4 +55,15 @@ if __name__ == '__main__':
     
     if not os.path.exists(args.outdir):
         os.makedirs(args.outdir)
-    image.save(os.sep.join((args.outdir, make_outfilename(args.prompt))))
+    pngdir = os.sep.join((args.outdir, 'png'))
+    jsondir = os.sep.join((args.outdir, 'json'))
+    if not os.path.exists(pngdir):
+        os.makedirs(pngdir)
+    if not os.path.exists(jsondir):
+        os.makedirs(jsondir)
+    outfilename_base = make_outfilename(args.prompt)
+    image.save(os.sep.join((pngdir, outfilename_base + '.png')))
+    with open(os.sep.join((jsondir, outfilename_base + '.json')), mode='w') as json_outfile:
+        pretty_json = json.dumps(metadata, sort_keys=True, indent=4)
+        print(pretty_json)
+        json_outfile.write(pretty_json)
