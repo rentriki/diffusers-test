@@ -62,8 +62,11 @@ if __name__ == '__main__':
     if not os.path.exists(jsondir):
         os.makedirs(jsondir)
     outfilename_base = make_outfilename(args.prompt)
-    image.save(os.sep.join((pngdir, outfilename_base + '.png')))
-    with open(os.sep.join((jsondir, outfilename_base + '.json')), mode='w') as json_outfile:
+    image_filename = os.sep.join((pngdir, outfilename_base + '.png'))
+    json_filename = os.sep.join((jsondir, outfilename_base + '.json'))
+    image.save(image_filename)
+    with open(json_filename, mode='w') as json_outfile:
         pretty_json = json.dumps(metadata, sort_keys=True, indent=4)
         print(pretty_json)
         json_outfile.write(pretty_json)
+    os.system(f'mspaint {image_filename}')
