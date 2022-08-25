@@ -14,11 +14,11 @@ DEVICE   = "cuda"
 CHAR_PAT      = re.compile(r'[^0-9A-Za-z ]')
 TIMESTAMP_PAT = re.compile(r'[:\.]')
 
-def make_outfilename(prompt):
+def make_outfilename(prompt, maxlen=40):
     title = '-'.join(CHAR_PAT.sub('', prompt).lower().split())
     now = datetime.now().isoformat(sep='-', timespec='milliseconds')
     stamp = TIMESTAMP_PAT.sub('-', now)
-    return '_'.join((title, stamp))
+    return '_'.join((title, stamp))[:maxlen]
 
 if __name__ == '__main__':
 
@@ -33,6 +33,7 @@ if __name__ == '__main__':
     parser.add_argument('--guidance_scale', '-g', type=float, default=7.5)
     parser.add_argument('--num_inference_steps', '-n', type=int, default=50)
     parser.add_argument('--outdir', '-o', type=str, default='output')
+    parser.add_argument('--mspaint', '-m', action='store_true')
     args = parser.parse_args()
 
     metadata = { 'creation_date' : datetime.now().isoformat(timespec='milliseconds'), 
@@ -69,4 +70,5 @@ if __name__ == '__main__':
         pretty_json = json.dumps(metadata, sort_keys=True, indent=4)
         print(pretty_json)
         json_outfile.write(pretty_json)
-    os.system(f'mspaint {image_filename}')
+    if args.mspaint:
+        os.system(f'mspaint {image_filename}')
